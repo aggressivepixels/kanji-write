@@ -21,6 +21,19 @@
         src = pkgs.runCommand "kanji-write-src" { } ''
           cp -r ${./src}/. $out
         '';
+
+        # Type stubs for PyQt6, used by the LSP. Anki bundles PyQt6 without
+        # any stubs, so its `aqt.qt` re-exports can't be resolved otherwise.
+        pyqt6-stubs = pkgs.python3.pkgs.buildPythonPackage {
+          pname = "PyQt6-stubs";
+          version = "20250824";
+          format = "wheel";
+          src = pkgs.fetchurl {
+            url = "https://files.pythonhosted.org/packages/54/57/08d3a5c19f2d2fd773d2329d19692e682ab9e2a6620c1a586a744d50b52b/pyqt6_stubs-20250824-py3-none-any.whl";
+            hash = "sha256-S3fcQPXat8pLqJn/9MHbjenMc3me6Y9WyuYzSfGKblI=";
+          };
+        };
+
       in
       {
         packages = {
@@ -34,7 +47,9 @@
         devShells = {
           default = pkgs.mkShell {
             packages = [
-              pkgs.python3
+              (pkgs.python3.withPackages (_ps: [
+                pyqt6-stubs
+              ]))
               pkgs.anki
             ];
           };
