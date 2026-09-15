@@ -16,12 +16,19 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+
+        version = self.rev or self.lastModifiedDate;
+        src = pkgs.runCommand "kanji-write-src" { } ''
+          cp -r ${./src}/. $out
+        '';
       in
       {
         packages = {
-          kanji-write = pkgs.runCommand "kanji-write" { } ''
-            cp -r ${./src}/. $out
-          '';
+          kanji-write = src;
+          kanji-write-anki-addon = pkgs.anki-utils.buildAnkiAddon {
+            pname = "kanji-write";
+            inherit version src;
+          };
         };
 
         devShells = {
